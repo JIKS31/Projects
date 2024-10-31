@@ -16,14 +16,17 @@ const configuration = {
 let room;
 let pc;
 
-function onSuccess() {};
+function onSuccess() {
+  console.log('ICE candidate added successfully');
+}
+
 function onError(error) {
-  console.error(error);
-};
+  console.error('Error:', error);
+}
 
 drone.on('open', error => {
   if (error) {
-    return console.error(error);
+    return console.error('Error connecting to Scaledrone:', error);
   }
   room = drone.subscribe(roomName);
   room.on('open', error => {
@@ -52,27 +55,32 @@ function startWebRTC(isOfferer) {
 
   pc.onicecandidate = event => {
     if (event.candidate) {
+      console.log('New ICE candidate:', event.candidate);
       sendMessage({ 'candidate': event.candidate });
     }
   };
 
   if (isOfferer) {
     pc.onnegotiationneeded = () => {
+      console.log('Negotiation needed');
       pc.createOffer().then(localDescCreated).catch(onError);
     }
   }
 
   pc.ontrack = event => {
     const stream = event.streams[0];
+    console.log('Remote stream added:', stream);
     if (!remoteVideo.srcObject || remoteVideo.srcObject.id !== stream.id) {
       remoteVideo.srcObject = stream;
     }
   };
 
+  // Request user media with rear camera
   navigator.mediaDevices.getUserMedia({
-    video: { facingMode: { exact: "environment" } },  // Rear camera constraint
-    audio: false  // Set to true if you also need audio
+    video: { facingMode: { exact: "environment" } },
+    audio: false // Set to true if you need audio
   }).then(stream => {
+    console.log('Local media stream obtained:', stream);
     stream.getTracks().forEach(track => pc.addTrack(track, stream));
   }).catch(onError);
 
