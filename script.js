@@ -70,9 +70,8 @@ function startWebRTC(isOfferer) {
   pc.ontrack = event => {
     const stream = event.streams[0];
     console.log('Remote stream added:', stream);
-    if (!remoteVideo.srcObject || remoteVideo.srcObject.id !== stream.id) {
-      remoteVideo.srcObject = stream;
-    }
+    // Assign the remote stream to the video element
+    remoteVideo.srcObject = stream;
   };
 
   // Request user media with rear camera
@@ -81,6 +80,7 @@ function startWebRTC(isOfferer) {
     audio: false // Set to true if you need audio
   }).then(stream => {
     console.log('Local media stream obtained:', stream);
+    // Add tracks to the connection, but don't show local video
     stream.getTracks().forEach(track => pc.addTrack(track, stream));
   }).catch(onError);
 
