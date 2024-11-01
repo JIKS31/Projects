@@ -79,14 +79,18 @@ function startWebRTC(isOfferer) {
   navigator.mediaDevices.getUserMedia({
   audio: true,
   video: {
-    facingMode: { exact: "environment" } // Requests the rear camera
+    facingMode: "environment"  // Remove `ideal` or `exact`
   }
 }).then(stream => {
   // Display your local video in #localVideo element
   localVideo.srcObject = stream;
   // Add your stream to be sent to the connecting peer
   stream.getTracks().forEach(track => pc.addTrack(track, stream));
-}).catch(onError);
+}).catch(error => {
+  console.error("Error accessing camera:", error);
+  onError(error);
+});
+
 
 
   // Listen to signaling data from Scaledrone
