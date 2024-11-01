@@ -76,20 +76,33 @@ function startWebRTC(isOfferer) {
     }
   };
 
-  navigator.mediaDevices.getUserMedia({
-  audio: true,
-  video: {
-    facingMode: "environment"  // Remove `ideal` or `exact`
-  }
-}).then(stream => {
-  // Display your local video in #localVideo element
-  localVideo.srcObject = stream;
-  // Add your stream to be sent to the connecting peer
-  stream.getTracks().forEach(track => pc.addTrack(track, stream));
-}).catch(error => {
-  console.error("Error accessing camera:", error);
-  onError(error);
-});
+  navigator.mediaDevices.enumerateDevices()
+  .then(devices => {
+    const mainCamera = devices.find(device => device.kind === 'videoinput' && device.label.toLowerCase().includes("main"));
+    if (mainCamera) {
+      // Access the main camera using its device ID
+      return navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: { deviceId: { exact: mainCamera.deviceId } }
+      });
+    } else {
+      // Fallback to any available video input if main camera is not found
+      return navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true
+      });
+    }
+  })
+  .then(stream => {
+    // Display the video feed
+    localVideo.srcObject = stream;
+    stream.getTracks().forEach(track => pc.addTrack(track, stream));
+  })
+  .catch(error => {
+    console.error("Error accessing main camera:", error);
+    onError(error);
+  });
+
 
 
 
